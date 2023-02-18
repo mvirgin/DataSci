@@ -1,0 +1,12 @@
+## Requirements for web scraping
+beautifulsoup4
+## Parser
+lxml
+## Requesting web pages from websites
+requests
+
+## Selenium for dynamically loaded web pages
+Selenium
+
+## pandas for dataframes and analysis
+pandas
