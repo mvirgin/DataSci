@@ -3,34 +3,29 @@
 ### COS 482
 ### 20 February 2023
 
+## optional selenium import to show pages changing as it scrapes
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+
+## true requirements
 from bs4 import BeautifulSoup as bs
 import requests
-import time
 import pandas as pd
 
 ## website that we will be scraping
 url = "https://www.bookdepository.com/bestsellers"
 
-### selenium setup
-options = webdriver.ChromeOptions()
-options.add_argument('--ignore-certificate-errors')
-options.add_argument('--incognito')
-options.add_argument('--headless')
-driver = webdriver.Chrome("Users/Matt/Desktop/School/DataSci/Hw1")
-driver.get(url)
-## give page time to load:
-time.sleep(3)
-
-### for each page, load in the html - use selenium to change pages
-page_source = driver.page_source
+### selenium setup - uncomment if you want to watch it change pages
+### so you're not just sitting there. Uncomment line 102 as well
+# options = webdriver.ChromeOptions()
+# options.add_argument('--ignore-certificate-errors')
+# options.add_argument('--incognito')
+# options.add_argument('--headless')
+# driver = webdriver.Chrome("Users/Matt/Desktop/School/DataSci/Hw1")
+# driver.get(url)
+# WebDriverWait(driver,3)
 
 num_pages = 34  # there are 34 pages of bestselling books
-                # seems it stops at 34 no matter what/wont get last page
 
 ## create python dictionary
 book_data = {'title': [],
@@ -44,7 +39,7 @@ i = 1      # to track pages selenium has been through
 
 while i <= num_pages:
     ## scrape data w bs
-    soup = bs(page_source, 'lxml') 
+    soup = bs(requests.get(url).content, 'lxml') 
 
     ## change url back so we can modify cleanly later
     url = "https://www.bookdepository.com/bestsellers"
@@ -55,56 +50,98 @@ while i <= num_pages:
     ## break into title, author, pub date, format, curr price, orig price
     ## and add to dictionary 
     for info in book_info:
+        ## some books do not have publication dates / prices
+        ## so check to see if items they exist b4 adding
         book_title = info.find("h3", class_= "title")
-        ## needs [] unless you want a list of chars
-        book_data['title'] += [book_title.get_text(strip=True)]
+        if book_title:
+            ## needs [] unless you want a list of chars
+            book_data['title'] += [book_title.get_text(strip=True)]
+        else:
+            book_data['title'] += [None]
 
         book_author = info.find("p", class_= "author")
-        book_data['author'] += [book_author.get_text(strip=True)]
+        if book_author:
+            book_data['author'] += [book_author.get_text(strip=True)]
+        else:
+            book_data['author'] += [None]
 
-        ## some books do not have publication dates / prices
-        ## check to see if they exist b4 adding
         book_pub_date = info.find("p", class_="published")
         if book_pub_date:
             book_data['publication_date'] += [book_pub_date.get_text(strip=True)]
         else:
-            book_data['publication_date'] += ['']
+            book_data['publication_date'] += [None]
 
         book_format = info.find("p", class_="format")
-        book_data['format'] += [book_format.get_text(strip=True)]
+        if book_format:
+            book_data['format'] += [book_format.get_text(strip=True)]
+        else:
+            book_data['format'] += [None]
 
         book_curr_price = info.find("span", class_="sale-price")
         if book_curr_price:
             book_data['current_price'] += [book_curr_price.get_text(strip=True)]
         else:
-            book_data['current_price'] += ['']
+            book_data['current_price'] += [None]
 
         book_orig_price = info.find("span", class_="rrp")
         if book_orig_price:
             book_data['original_price'] += [book_orig_price.get_text(strip=True)]
         else:
-            book_data['original_price'] += ['']
+            book_data['original_price'] += [None]
 
-    ## There is no next on final page, so don't try to find/click it
+    ## There is no next on final page
     if i < 34:
-        ## locate the next page button href
-        next_page = driver.find_element(By.LINK_TEXT, "»")
-        if next_page:
-            ## click next page button if it exists
-            next_page.click()
-            ## update url and page_source
-            extra_url = "?page={}".format(i+1)
-            url = url + extra_url
-            print(url)
-            driver.get(url)
-            page_source = driver.page_source
-            ## I don't think I actually need selenium, given I'm modifying
-            ## the url this way ... it looks cool, though
+        ## update url
+        extra_url = "?page={}".format(i+1)
+        url = url + extra_url
+
+        ## optional - watch it change pages - uncomment to see selenium
+        ## changing pages as it scrapes the data so you at least have something
+        ## to look at while it loads
+
+        # driver.get(url)
+
+        ## I don't actually need Selenium, given there's no need to scroll,
+        ## but I added all the code already so I figure I may as well use it
+
     i = i + 1
-    print(i)
 
 ## now that dictionary is complete, turn into dataframe and export to .csv
-book_dataframe = pd.DataFrame(book_data)
-book_dataframe.to_csv('bestsellers.csv')
-    
-    
+book_df = pd.DataFrame(book_data)
+book_df.to_csv('bestsellers.csv')
+
+## I also noticed that the book website sometimes fails to load prices ...
+## this happens just in my browser and refreshing will load them
+## for example, the final book on page 34 as of 2/25/2023, 
+## "Shooting an Elephant" loads it's discounted price only sometimes.
+
+### Task 1 complete
+
+### Task 2:
+### a):
+
+book_df.rename(columns = {'publication_date' : 'publication_year'}, 
+                      inplace = True)
+
+## remove rows containing empty values
+book_df.dropna(inplace = True)
+
+curr_price = book_df['current_price']
+orig_price = book_df['original_price']
+
+## removes the first 3 chars from the strings contained in a pandas series
+## used to remove US$ from curr_price and orig_price
+def removeCash (someS):
+    someS_list = someS.tolist()             # convert series to list
+    for i in range(len(someS_list)):
+        someS_list[i] = someS_list[i][3:]   # remove first 3 chars
+        #* casting to int might be useful for later plots, etc - same goes for date? 
+    return someS_list                      
+
+book_df['current_price'] = removeCash(curr_price)
+book_df['original_price'] = removeCash(orig_price)
+
+### b):
+book_df.to_csv('bestsellers-cleaned.csv')
+
+### c):
