@@ -10,3 +10,6 @@ Selenium
 
 ## pandas for dataframes and analysis
 pandas
+
+## for displaying the graphs
+matplotlib

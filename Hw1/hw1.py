@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup as bs
 import requests
 import pandas as pd
+import matplotlib.pyplot as plt
 
 ## website that we will be scraping
 url = "https://www.bookdepository.com/bestsellers"
@@ -52,39 +53,41 @@ while i <= num_pages:
     for info in book_info:
         ## some books do not have publication dates / prices
         ## so check to see if items they exist b4 adding
+        ## author is sometimes '', so need to filter that out as well, checking
+        ## all for '' just in case
         book_title = info.find("h3", class_= "title")
-        if book_title:
+        if book_title and book_title.get_text(strip=True) != '':
             ## needs [] unless you want a list of chars
             book_data['title'] += [book_title.get_text(strip=True)]
         else:
             book_data['title'] += [None]
 
         book_author = info.find("p", class_= "author")
-        if book_author:
+        if book_author and book_author.get_text(strip=True) != '':
             book_data['author'] += [book_author.get_text(strip=True)]
         else:
             book_data['author'] += [None]
 
         book_pub_date = info.find("p", class_="published")
-        if book_pub_date:
+        if book_pub_date and book_pub_date.get_text(strip=True) != '':
             book_data['publication_date'] += [book_pub_date.get_text(strip=True)]
         else:
             book_data['publication_date'] += [None]
 
         book_format = info.find("p", class_="format")
-        if book_format:
+        if book_format and book_format.get_text(strip=True) != '':
             book_data['format'] += [book_format.get_text(strip=True)]
         else:
             book_data['format'] += [None]
 
         book_curr_price = info.find("span", class_="sale-price")
-        if book_curr_price:
+        if book_curr_price and book_curr_price.get_text(strip=True) != '':
             book_data['current_price'] += [book_curr_price.get_text(strip=True)]
         else:
             book_data['current_price'] += [None]
 
         book_orig_price = info.find("span", class_="rrp")
-        if book_orig_price:
+        if book_orig_price and book_orig_price.get_text(strip=True) != '':
             book_data['original_price'] += [book_orig_price.get_text(strip=True)]
         else:
             book_data['original_price'] += [None]
@@ -123,9 +126,22 @@ book_df.to_csv('bestsellers.csv')
 book_df.rename(columns = {'publication_date' : 'publication_year'}, 
                       inplace = True)
 
+date = book_df['publication_year']
+
+## removes the day and month from the strings contained in a pandas series
+def removeDayMonth (someS):
+    someS_list = someS.tolist()             # convert series to list
+    for i in range(len(someS_list)):
+        ## remove day and month chars, cast to int
+        someS_list[i] = int(someS_list[i][7:])   
+    return someS_list 
+
+book_df['publication_year'] = removeDayMonth(date)
+
 ## remove rows containing empty values
 book_df.dropna(inplace = True)
 
+## get current and original price columns
 curr_price = book_df['current_price']
 orig_price = book_df['original_price']
 
@@ -134,8 +150,8 @@ orig_price = book_df['original_price']
 def removeCash (someS):
     someS_list = someS.tolist()             # convert series to list
     for i in range(len(someS_list)):
-        someS_list[i] = someS_list[i][3:]   # remove first 3 chars
-        #* casting to int might be useful for later plots, etc - same goes for date? 
+        ## remove first 3 chars, cast to int
+        someS_list[i] = float(someS_list[i][3:])    
     return someS_list                      
 
 book_df['current_price'] = removeCash(curr_price)
@@ -145,3 +161,29 @@ book_df['original_price'] = removeCash(orig_price)
 book_df.to_csv('bestsellers-cleaned.csv')
 
 ### c):
+
+## new dataframe containing only bestsellers published during or after 2022
+after_2022_df = book_df[book_df['publication_year'] >= 2022]
+
+## drop unneeded columns as we only care about title, author, and current price
+after_2022_df.drop(columns = ['publication_year', 'format', 'original_price'], 
+                   inplace = True)
+
+## save to csv for easy viewing
+after_2022_df.to_csv('c.csv')
+
+### d):
+
+book_df.plot(x='current_price', y='original_price', kind='scatter',
+              title = 'current vs. original price')
+
+### e):
+book_df[['current_price']].plot(kind='hist', title = 'Bestseller current prices')
+
+### f):
+book_df[['current_price','publication_year']].groupby(
+    'publication_year').mean().sort_values(
+    by = 'publication_year', ascending=True).plot.bar(
+    title='Average current price by publication year')
+
+plt.show()          # display plots
