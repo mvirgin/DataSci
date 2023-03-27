@@ -1,0 +1,2 @@
+# library that allows python program to connct to PostgreSQL database
+psycopg2
