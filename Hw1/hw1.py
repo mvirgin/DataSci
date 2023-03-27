@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 url = "https://www.bookdepository.com/bestsellers"
 
 ### selenium setup - uncomment if you want to watch it change pages
-### so you're not just sitting there. Uncomment line 102 as well
+### so you're not just sitting there. Uncomment line 105 as well
 # options = webdriver.ChromeOptions()
 # options.add_argument('--ignore-certificate-errors')
 # options.add_argument('--incognito')
