@@ -148,19 +148,27 @@ for line in dFile:
 dFile.close()
 
 ## inserting roles, etc into ActsIn:
-## TODO error with unknown symbols
 aFile = open("IMDBCast.txt", "r", encoding='latin-1')
 next(aFile)
 for line in aFile:
     data = line.strip().split(",")
 
-    pid = int(data[0])
-    mid = int(data[1])
-    role = data[2]
-    if role:
+    if len(data) == 3:
+        pid = int(data[0])
+        mid = int(data[1])
         role = data[2]
+        if role:
+            role = data[2]
+        else:
+            role = None
     else:
-        role = None
+        pid = int(data[0])
+        mid = int(data[1])
+        role = data[2:]
+        if role:
+            role = str(data[2:]).replace('[','').replace(']','').replace("'",'')
+        else:
+            role = None
 
     try:
         curr.execute("INSERT INTO ActsIn VALUES (%s, %s, %s)",
