@@ -101,16 +101,16 @@ moviesdb-# LIMIT 10;
 
 # Task 3 (f):
 
- id  |    fname     |    lname
------+--------------+-------------
-  35 | Mode         | 2
-  40 | Articolo     | 31
- 122 | Willie       | Aames
- 125 | Thor Michael | Aamodt
- 128 | Peter        | Aanensen
- 180 | Owen         | Aaronovitch
- 331 | Diego        | Abatantuono
- 401 | Nabil        | Abbazy
- 421 | Tony Arunah  | Abbey
- 475 | Jamie        | Abbott
+ id  |    fname     |  lname   | gender | numdirectors
+-----+--------------+----------+--------+--------------
+  35 | Mode         | 2        | M      |           32
+  38 | AndrΘ        | 3000     | M      |           13
+  40 | Articolo     | 31       | M      |           13
+  43 | Mick         | 5        | M      |           10
+  70 | Hauk (I)     | Aabel    | M      |           10
+  71 | Per (I)      | Aabel    | M      |           13
+  92 | Lee          | Aaker    | M      |           30
+ 116 | Risto        | Aaltonen | M      |           12
+ 122 | Willie       | Aames    | M      |           81
+ 125 | Thor Michael | Aamodt   | M      |           14
 (10 rows)

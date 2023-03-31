@@ -31,7 +31,7 @@ try:
             pid integer NOT NULL,
             mid integer NOT NULL,
             role text,
-            PRIMARY KEY (pid, mid),
+            PRIMARY KEY (pid, mid, role),
             CONSTRAINT f_key_pid FOREIGN KEY (pid) REFERENCES Person(id)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT,
@@ -160,7 +160,7 @@ for line in aFile:
         if role:
             role = data[2]
         else:
-            role = None
+            role = ' '          # not None so that role can be in pkey of ActsIn
     else:
         pid = int(data[0])
         mid = int(data[1])

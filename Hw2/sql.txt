@@ -52,17 +52,11 @@ LIMIT 10;
 
 # Task 3 (f):
 
-SELECT p.id, p.fname, p.lname, p.gender
+SELECT p.id, p.fname, p.lname, p.gender, COUNT(distinct directs.did) AS numDirectors
 FROM person p
 JOIN actsin ON p.id = actsin.pid
-JOIN (
-  SELECT mid, COUNT(DISTINCT did)
-  FROM directs
-  GROUP BY mid
-  HAVING COUNT(DISTINCT did) >= 10
-) AS T ON T.mid = actsin.mid
-JOIN directs d ON d.mid = actsin.mid
-GROUP BY p.id, p.fname, p.lname, p.gender
-HAVING COUNT(DISTINCT d.did) >= 10
+JOIN directs ON actsin.mid = directs.mid
+GROUP BY p.id
+HAVING COUNT (distinct directs.did) >= 10
+ORDER BY numDirectors DESC
 LIMIT 10;
-
