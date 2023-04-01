@@ -1,3 +1,10 @@
+### Matthew Virgin
+### Dr. Chaofan Chen
+### COS 482
+### 5 April 2023
+
+#### Homework 2, tasks 1 - 3:
+
 import psycopg2
 
 conn = psycopg2.connect("host=localhost dbname=moviesdb user=postgres \
