@@ -20,6 +20,7 @@ def find_best_movies_in_years(k, start_year, end_year):
         curr.execute("""SELECT * FROM Movie
                         WHERE year >= {start_year}
                         AND year <= {end_year}
+                        GROUP BY id
                         ORDER BY rank DESC NULLS LAST
                         LIMIT {k}
                     """.format(start_year=start_year,end_year=end_year,k=k))
