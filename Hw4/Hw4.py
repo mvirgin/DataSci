@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 from sklearn import linear_model
 from sklearn.metrics import accuracy_score
+import heapq
 
 ### Task 1
 
@@ -42,18 +43,28 @@ svm_clf = LinearSVC(C=1e4, loss='hinge', max_iter=int(1e5))
 svm_clf.fit(X_train, y_train.ravel())
 ## Predict / test set accuracy
 svm_y_pred = svm_clf.predict(X_test)
+coefs = svm_clf.coef_.flatten()
+# Find the indices of the largest 3 items
+top_3_indices = np.where(coefs >= np.sort(coefs)[-3])[0]
 print('Accuracy on test set w/ SVM:', np.mean(svm_y_pred==y_test))
+print('coeffs: ', coefs)
+print('3 most significant coefs pos: ', top_3_indices )
 
 ## Logistic Regression
 ## Train
 lrm_clf = linear_model.LogisticRegression(penalty='l2', C=1.0)
 lrm_clf.fit(X_train, y_train.ravel())
+coefs2 = lrm_clf.coef_.flatten()
+# Find the indices of the largest 3 items
+top_3_indices2 = np.where(coefs2 >= np.sort(coefs2)[-3])[0]
 ## Predict / test set accuracy
 ## column 0 is predicted probabilities of email not being spam
 ## column 1 is of email being spam (in test dataset)
 proba_pred = lrm_clf.predict_proba(X_test)[:, 1]
 lrm_y_pred = proba_pred > 0.5   # convert to binaray predictions
 print('Accuracy on test set w/ LRM:', accuracy_score(y_test, lrm_y_pred))
+print('coeffs: ', coefs2)
+print('3 most significant coefs pos: ', top_3_indices2 )
 
 ## TODO: examine coefficients for writeup
 # Again, we can access the parameters of a trained classifier using:
