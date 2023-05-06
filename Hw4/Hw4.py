@@ -20,8 +20,8 @@ from sklearn.metrics import accuracy_score
 data = np.loadtxt("spambase.data", delimiter = ',')
 
 ## split into train and test sets
-X = data[:, 0:57]
-y = data[:, 57:58]
+X = data[:, :-1]
+y = data[:, -1]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
 
